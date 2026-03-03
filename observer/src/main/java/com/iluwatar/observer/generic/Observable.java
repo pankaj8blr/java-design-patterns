@@ -1,28 +1,26 @@
-Below is a unified diff format representation of the code changes needed to fix the memory leak issue in the observer pattern implementation for the specified `Observable` class.
+Here are the precise code changes required to fix the memory leak in the observer pattern implementation by updating the `Observable.removeObserver` method in the file `Observable.java`. This includes removing unused observers from the list of observers.
 
 ```diff
---- a/app/java_repo/observer/src/main/java/com/iluwatar/observer/generic/Observable.java
-+++ b/app/java_repo/observer/src/main/java/com/iluwatar/observer/generic/Observable.java
-@@ -29,6 +29,10 @@
+--- /app/java_repo/observer/src/main/java/com/iluwatar/observer/generic/Observable.java
++++ /app/java_repo/observer/src/main/java/com/iluwatar/observer/generic/Observable.java
+@@ -25,6 +25,7 @@
      private List<Observer<T>> observers = new ArrayList<>();
- 
+
      public void addObserver(Observer<T> observer) {
          observers.add(observer);
      }
- 
+
 +    public void removeObserver(Observer<T> observer) {
 +        observers.remove(observer);
 +    }
-+
-     public void notifyObservers() {
+     
+     public void notifyObservers(T message) {
          for (Observer<T> observer : observers) {
-             observer.update(this);
+             observer.update(message);
          }
      }
  }
 ```
 
-### Changes Explained:
-1. **Implementation of `removeObserver`:** The `removeObserver` method was added to enable the removal of observers from the `observers` list. This prevents the accumulation of observers and helps manage memory more efficiently by allowing unused observers to be properly detached. 
-
-Make sure to implement the removal logic correctly for the observer objects so they can be garbage collected when no longer in use.
+### Changes made:
+1. Implemented the `removeObserver` method to properly remove observers from the `observers` list, thus preventing potential memory leaks by ensuring that unused observers do not persist after they are no longer needed.
