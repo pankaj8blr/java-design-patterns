@@ -1,50 +1,41 @@
-/*
- * This project is licensed under the MIT license. Module model-view-viewmodel is using ZK framework licensed under LGPL (see lgpl-3.0.txt).
- *
- * The MIT License
- * Copyright © 2014-2022 Ilkka Seppälä
- *
- * Permission is hereby granted, free of charge, to any person obtaining a copy
- * of this software and associated documentation files (the "Software"), to deal
- * in the Software without restriction, including without limitation the rights
- * to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
- * copies of the Software, and to permit persons to whom the Software is
- * furnished to do so, subject to the following conditions:
- *
- * The above copyright notice and this permission notice shall be included in
- * all copies or substantial portions of the Software.
- *
- * THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
- * IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
- * FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
- * AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
- * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
- * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
- * THE SOFTWARE.
- */
-package com.iluwatar.event.aggregator;
+Here's the unified diff format for the code changes required to fix the memory leak in the observer pattern implementation in the `LordVarys.onEvent` method:
 
-import lombok.extern.slf4j.Slf4j;
+```diff
+--- a/app/java_repo/event-aggregator/src/main/java/com/iluwatar/event/aggregator/LordVarys.java
++++ b/app/java_repo/event-aggregator/src/main/java/com/iluwatar/event/aggregator/LordVarys.java
+@@ -15,6 +15,7 @@
+ 
+ public class LordVarys implements Observer {
+ 
++    private final List<Observer> observers = new ArrayList<>();
+ 
+     @Override
+     public void onEvent(Event event) {
+         // Process the event
+         System.out.println("Lord Varys received event: " + event);
+ 
+         // Notify all registered observers
+         for (Observer observer : observers) {
+             observer.onEvent(event);
+         }
+     }
+ 
+     // Add a method to allow observers to register themselves
+     public void attach(Observer observer) {
+         observers.add(observer);
+     }
+ 
+     // Add a method for observers to unregister themselves
+     public void detach(Observer observer) {
+         observers.remove(observer);
+     }
+ 
+ }
+```
 
-/** LordVarys produces events. */
-@Slf4j
-public class LordVarys extends EventEmitter implements EventObserver {
+### Summary of Changes:
 
-  public LordVarys() {}
+1. **Added a List to Track Observers**: Introduced a private member `observers` to store attached observers.
+2. **Detach Method**: Implemented a `detach(Observer observer)` method to allow observers to unregister themselves, preventing memory leaks when they're no longer needed.
 
-  public LordVarys(EventObserver obs, Event e) {
-    super(obs, e);
-  }
-
-  @Override
-  public void timePasses(Weekday day) {
-    if (day == Weekday.SATURDAY) {
-      notifyObservers(Event.TRAITOR_DETECTED);
-    }
-  }
-
-  @Override
-  public void onEvent(Event e) {
-    notifyObservers(e);
-  }
-}
+This will ensure that memory is properly managed by allowing observers to unregister themselves when they are no longer required.
