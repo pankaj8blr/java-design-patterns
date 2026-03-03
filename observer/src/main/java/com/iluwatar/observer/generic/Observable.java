@@ -1,39 +1,28 @@
-To address the memory leak issue in the observer pattern implementation, we need to ensure that observers are not being retained longer than necessary. The common cause for such leaks is the use of a strong reference to the observer objects. We can replace this with a weak reference instead. The precise code changes required in the `Observable` class involve changing the way observers are stored.
-
-Here's the unified diff format output for these changes:
+Below is a unified diff format representation of the code changes needed to fix the memory leak issue in the observer pattern implementation for the specified `Observable` class.
 
 ```diff
 --- a/app/java_repo/observer/src/main/java/com/iluwatar/observer/generic/Observable.java
 +++ b/app/java_repo/observer/src/main/java/com/iluwatar/observer/generic/Observable.java
-@@ -1,5 +1,7 @@
- package com.iluwatar.observer.generic;
+@@ -29,6 +29,10 @@
+     private List<Observer<T>> observers = new ArrayList<>();
  
-+import java.lang.ref.WeakReference;
- import java.util.ArrayList;
- import java.util.List;
- 
-@@ -3,7 +5,8 @@
- public abstract class Observable {
-     private final List<Observer> observers = new ArrayList<>();
- 
--    public void addObserver(Observer observer) {
-+    public void addObserver(Observer observer) {
-+        WeakReference<Observer> weakObserver = new WeakReference<>(observer);
-         observers.add(weakObserver.get());
+     public void addObserver(Observer<T> observer) {
+         observers.add(observer);
      }
  
-@@ -10,7 +13,8 @@
-     public void removeObserver(Observer observer) {
--        observers.remove(observer);
-+        observers.removeIf(weakObserver -> weakObserver.get() == observer);
++    public void removeObserver(Observer<T> observer) {
++        observers.remove(observer);
++    }
++
+     public void notifyObservers() {
+         for (Observer<T> observer : observers) {
+             observer.update(this);
+         }
      }
- 
-     protected void notifyObservers() {
+ }
 ```
 
-### Summary of Changes:
-1. Import `java.lang.ref.WeakReference`.
-2. Changed the storage of observers in `addObserver()` to use `WeakReference`.
-3. Updated `removeObserver()` to remove a `WeakReference` based on the wrapped observer.
+### Changes Explained:
+1. **Implementation of `removeObserver`:** The `removeObserver` method was added to enable the removal of observers from the `observers` list. This prevents the accumulation of observers and helps manage memory more efficiently by allowing unused observers to be properly detached. 
 
-These changes ensure that observers can be garbage collected when they are no longer in use, fixing the memory leak issue.
+Make sure to implement the removal logic correctly for the observer objects so they can be garbage collected when no longer in use.
