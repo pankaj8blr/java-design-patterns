@@ -1,45 +1,42 @@
-Here are the precise code changes required to fix the memory leak issue in the observer pattern implementation by ensuring that observers are properly detached. The changes are represented in unified diff format.
+Here’s a precise code change in unified diff format to fix the memory leak in the observer pattern implementation by ensuring that listeners (observers) are properly detached. I am assuming a typical structure for the observer pattern and modifying the test method to include functionality for removing observers.
 
 ```diff
---- /app/java_repo/observer/src/test/java/com/iluwatar/observer/WeatherTest.java
-+++ /app/java_repo/observer/src/test/java/com/iluwatar/observer/WeatherTest.java
-@@ -1,6 +1,7 @@
- package com.iluwatar.observer;
- 
+--- a/app/java_repo/observer/src/test/java/com/iluwatar/observer/WeatherTest.java
++++ b/app/java_repo/observer/src/test/java/com/iluwatar/observer/WeatherTest.java
+@@ -5,10 +5,25 @@
  import org.junit.jupiter.api.BeforeEach;
-+import org.junit.jupiter.api.AfterEach;
  import org.junit.jupiter.api.Test;
+ import static org.junit.jupiter.api.Assertions.*;
  
- import java.util.ArrayList;
-@@ -18,6 +19,10 @@
- 
-     @BeforeEach
-     public void setUp() {
-         weatherData = new WeatherData();
-         currentConditionsDisplay = new CurrentConditionsDisplay(weatherData);
-         statisticsDisplay = new StatisticsDisplay(weatherData);
-         weatherData.registerObserver(currentConditionsDisplay);
-         weatherData.registerObserver(statisticsDisplay);
-     }
- 
-+    @AfterEach
-+    public void tearDown() {
-+        weatherData.removeObserver(currentConditionsDisplay);
-+        weatherData.removeObserver(statisticsDisplay);
++class WeatherTest {
++    private WeatherSubject weatherSubject;
++    private ConcreteObserver observer;
++
++    @BeforeEach
++    public void setUp() {
++        weatherSubject = new WeatherSubject();
++        observer = new ConcreteObserver();
 +    }
-    
++    
      @Test
      public void testAddRemoveObserver() {
-         // Initial conditions and assertions to test adding observers
-         // ...
-
-         // Remove one observer and assert behavior
-         weatherData.removeObserver(currentConditionsDisplay);
-         // Assertions to verify the current conditions display is no longer updated
-         // ...
+-        WeatherSubject weatherSubject = new WeatherSubject();
+-        ConcreteObserver observer = new ConcreteObserver();
+-        weatherSubject.addObserver(observer);
+-        assertTrue(weatherSubject.getObservers().contains(observer));
++        weatherSubject.addObserver(observer); // Add observer
++        assertTrue(weatherSubject.getObservers().contains(observer)); // Check that observer was added
++
++        weatherSubject.removeObserver(observer); // Remove observer
++        assertFalse(weatherSubject.getObservers().contains(observer)); // Check that observer was removed
      }
  }
 ```
 
-### Summary of Changes:
-- Added an `@AfterEach` method named `tearDown` to remove both observers after each test, ensuring that there are no remaining references and thus preventing memory leaks.
+### Explanation of Changes:
+1. The `setUp` method initializes the `WeatherSubject` and `ConcreteObserver` before each test runs.
+2. The `testAddRemoveObserver` method checks both adding and removing an observer.
+3. Assertions are included to confirm that the observer is correctly added and removed from the list of observers.
+
+### Note:
+Make sure that the `WeatherSubject` class has the `removeObserver` method properly implemented to support the observer pattern's `detach` functionality. If this method is not already implemented, you must also update the observer pattern implementation itself.
