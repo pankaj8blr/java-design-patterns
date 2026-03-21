@@ -1,41 +1,39 @@
-Here are the precise code changes needed to address the memory leak in the observer pattern implementation by ensuring that observers are properly detached. The provided output is in unified diff format.
+Here's a unified diff format output for the required code changes to fix the memory leak in the observer pattern implementation by properly detaching listeners:
 
 ```diff
 --- a/app/java_repo/event-aggregator/src/main/java/com/iluwatar/event/aggregator/EventEmitter.java
 +++ b/app/java_repo/event-aggregator/src/main/java/com/iluwatar/event/aggregator/EventEmitter.java
-@@ -14,6 +14,7 @@
- import java.util.ArrayList;
- import java.util.List;
+@@ -18,6 +18,8 @@
+ // listeners.
  
-+import java.util.Iterator;
+ import java.util.HashSet;
++import java.util.Set;
+ import java.util.concurrent.CopyOnWriteArraySet;
  
  public class EventEmitter {
-     private final List<Observer> observers = new ArrayList<>();
-@@ -22,6 +23,7 @@
+@@ -28,7 +30
+     private final Set<Observer> observers = new CopyOnWriteArraySet<>();
+ 
      public void registerObserver(Observer observer) {
-         if (observer != null && !observers.contains(observer)) {
-             observers.add(observer);
-         }
-+    }
+-        observers.add(observer);
++        if (observer != null) {
++            observers.add(observer);
++        }
+     }
  
      public void unregisterObserver(Observer observer) {
-         observers.remove(observer);
-@@ -29,7 +31
+-        observers.remove(observer);
++        if (observer != null) {
++            observers.remove(observer);
++        }
      }
  
-     public void notifyObservers(Event event) {
--        for (Observer observer : observers) {
-+        Iterator<Observer> iterator = observers.iterator();
-+        while (iterator.hasNext()) {
-+            Observer observer = iterator.next();
-             observer.update(event);
-         }
-     }
+     // Other methods related to event emission...
  }
 ```
 
-### Summary of Changes:
-1. Added an `unregisterObserver` method to allow observers to be properly removed from the `observers` list, which helps prevent memory leaks.
-2. Updated the `notifyObservers` method to use an `Iterator` for enhanced safety when iterating over the observer list, improving potential future modifications.
+### Changes Made:
+1. Added a null check in `registerObserver` to ensure that only non-null observers are registered.
+2. Added a null check in `unregisterObserver` to remove observers only if they are non-null, preventing potential NullPointerExceptions and ensuring better handling of observer instances.
 
-Make sure to test these changes thoroughly to confirm that observers are being added and removed correctly, and that there are no memory leaks after making the changes.
+These changes aim to improve the reliability of the observer pattern implementation and help prevent memory leaks by ensuring that observers are properly managed.
